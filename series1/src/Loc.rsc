@@ -9,14 +9,10 @@ import List;
 import IO;
 import util::Resources;
 
-public void countLines() {
-	loc project = |project://smallsql0.21_src|;
+public int countLinesForProject(loc project) {
+	//loc project = |project://smallsql0.21_src|;
 	list[loc] files = allFiles(project);
-	int sum = 0;
-	for (file <- files) {
-		sum += countLinesForFile(file);
-	}
-	println(sum);
+	return sum([countLinesForFile(file) | file <- files]);
 }
 
 public list[loc] allFiles(loc project) {
