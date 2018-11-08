@@ -8,12 +8,12 @@ import List;
 import Set;
 import Loc;
 
-public int getAverageUnitSizeForProject(loc location) {
+import util::Math;
+
+public real getAverageUnitSizeForProject(loc location) {
 	M3 project = createM3FromEclipseProject(location);
 	set[loc] units = methods(project);
-	return sum([getUnitSize(unit) | unit <- units]) / size(units);
-	// return min([getUnitSize(unit) | unit <- units]);
-	// return max([getUnitSize(unit) | unit <- units]);
+	return sum([getUnitSize(unit) | unit <- units]) / toReal(size(units));
 }
 
 int getUnitSize(loc unit) {
