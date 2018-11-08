@@ -11,19 +11,19 @@ public void main() {
 
 public void showSIGMaintainabilityModel(loc project) {
 	int linesForProject = countLinesForProject(project);
-	println("------------------------------------------------");
+	println("---------------------------");
 	println("Volume");
 	println("Total code lines: <linesForProject>");
 	println("Volume score: <getRankForScore(linesForProject)>");
-	println("------------------------------------------------");
+	println("---------------------------");
 	println("Unit Size & Complexity");
 	println("Average unit size: <getAverageUnitSizeForProject(project)>");
 	println("Cyclomatic complexity: TODO");
 	println("Complexity score: TODO");
-	println("------------------------------------------------");
+	println("---------------------------");
 	println("Duplication");
 	println("Duplicates #: TODO");
 	println("Duplicates %: TODO");
 	println("Duplication score: TODO"); // numberOfDuplicates/toReal(totalLinesOfCode)
-	println("------------------------------------------------");
+	println("---------------------------");
 }
