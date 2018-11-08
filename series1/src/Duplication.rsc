@@ -7,25 +7,26 @@ import Set;
 import Map;
 import util::Math;
 
+import lang::java::jdt::m3::Core;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
 
 
-set[loc] getLocMethods(loc dir){ 
-	return methods(createM3FromDirectory(dir));
+set[loc] getLocMethods(M3 m3){ 
+	return methods(m3);
 }
 
-rel[str, loc] methodSrcs(loc dir){
-	return {<readFile(mloc), mloc> | loc mloc <- getLocMethods(dir)};
+rel[str, loc] methodSrcs(M3 m3){
+	return {<readFile(mloc), mloc> | loc mloc <- getLocMethods(m3)};
 }
 
-lrel[list[str], loc] methodLines(loc dir){
-	return [<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- methodSrcs(dir)];
+lrel[list[str], loc] methodLines(M3 m3){
+	return [<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- methodSrcs(m3)];
 }
 
-list[tuple[list[str], loc]] cleanMethodLines(loc dir){
-	return [<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(dir)];
+list[tuple[list[str], loc]] cleanMethodLines(M3 m3){
+	return [<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)];
 } 
 
 bool validLine(str line){
@@ -41,8 +42,8 @@ lrel[list[str], tuple[loc, int]] methodFragments(list[str] lines, loc methodLoc)
 } 
 
 
-lrel[list[str], tuple[loc, int]] allFragments(loc dir){
-	fragmentsPerMethod = [ methodFragments(lines, mloc) | <list[str] lines, loc mloc> <- cleanMethodLines(dir)];
+lrel[list[str], tuple[loc, int]] allFragments(M3 m3){
+	fragmentsPerMethod = [ methodFragments(lines, mloc) | <list[str] lines, loc mloc> <- cleanMethodLines(m3)];
 	return [<f, mloc> | lrel[list[str], tuple[loc, int]] fragmentSet <- fragmentsPerMethod
 					  , <list[str] f, tuple[loc, int] mloc> <- fragmentSet];
 }
@@ -51,19 +52,24 @@ lrel[list[str], tuple[loc, int]] allFragments(loc dir){
  * includes comments, documentation, etc, and combines them into a 
  * map mapping fragments to locations.
  */
-map[list[str], set[tuple[loc, int]]] duplicationMap(loc dir) {
-	map[list[str], rel[loc, int]] fragmentLocMap = toMap(allFragments(dir));
+map[list[str], set[tuple[loc, int]]] duplicationMap(M3 m3) {
+	map[list[str], rel[loc, int]] fragmentLocMap = toMap(allFragments(m3));
 	return (frag: fragmentLocMap[frag] | list[str] frag <- fragmentLocMap, size(fragmentLocMap[frag]) > 1);
 }
 
-set[tuple[loc, int]] allDuplicationLines(loc dir){
-	return {<location, offset + line> | duplocs <- range(duplicationMap(dir))
+set[tuple[loc, int]] allDuplicationLines(M3 m3){
+	return {<location, offset + line> | duplocs <- range(duplicationMap(m3))
 									  , <loc location, int offset> <- duplocs
 									  , line <- [0..6] } ;
 }
 
-int countDuplications(loc dir){
-	return size(allDuplicationLines(dir));
+int countDuplications(M3 m3){
+	return size(allDuplicationLines(m3));
+}
+
+int countDuplicationsForProject(loc project){
+	M3 m3 = createM3FromEclipseProject(project);
+	return countDuplications(m3);
 }
 
 

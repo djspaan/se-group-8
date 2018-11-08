@@ -5,6 +5,7 @@ import Set;
 import List;
 import util::Math;
 
+import lang::java::jdt::m3::Core;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
@@ -17,9 +18,14 @@ value runForSmallSQL(){
 	return avgComplexity(asts);
 }
 
-
 value runForHSqlDb(){
 	M3 m3 = createM3FromDirectory(|home:///se-group-8/projects/hsqldb|);
+	asts = toList(getASTs(m3));
+	return avgComplexity(asts);
+}
+
+value avgUnitComplexityForProject(loc project){
+	M3 m3 = createM3FromEclipseProject(project);
 	asts = toList(getASTs(m3));
 	return avgComplexity(asts);
 }
@@ -32,8 +38,7 @@ bool declIsMethod(Declaration d){
 }
 
 set[Declaration] getASTs(M3 m3){
-	mthds = methods(m3);
-	<m3, fileasts> = createM3sAndAstsFromFiles(mthds);
+	<m3, fileasts> = createM3sAndAstsFromFiles(files(m3));
 	set[Declaration] decls = {};
 	visit(fileasts){
 		case Declaration s: decls = decls + s;
@@ -67,6 +72,6 @@ list[int] getComplexities(list[node] asts){
 }
 
 real avgComplexity(list[Declaration] asts){
-	if(size(asts) == 0) throw Exception("#methods is 0");
+	if(size(asts) == 0) return 0.0;
 	return (0| it + c | c <- getComplexities(asts)) / toReal(size(asts));
 }

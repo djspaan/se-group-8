@@ -2,7 +2,11 @@ module Main
 
 import IO;
 import Loc;
+import Duplication;
 import UnitSize;
+import UnitComplexity;
+
+import util::Math;
 
 public void main() {
 	map[str, value] scores = calculateScores(|project://smallsql0.21_src|);
@@ -13,14 +17,16 @@ public void main() {
 
 public map[str, value] calculateScores(loc project) {
 	int lines = countLinesForProject(project);
+	int duplis = countDuplicationsForProject(project);
+	real duplipct = round(10000 * toReal(duplis) / lines) / 100.0;
 	return (
 		"linesNumber": lines, 
 		"linesScore": getRankForScore(lines), 
 		"avgUnitSize": getAverageUnitSizeForProject(project),
-		"complexityNumber": "TODO",
-		"complexityScore": "TODO",
-		"duplicatesNumber": "TODO",
-		"duplicatesPercentage": "TODO",
+		"complexityNumber": avgUnitComplexityForProject(project),
+		"complexityScore": "magic",
+		"duplicatesNumber": countDuplicationsForProject(project),
+		"duplicatesPercentage": "<duplipct>%",
 		"duplicatesScore": "TODO"
 		);
 }
@@ -37,8 +43,8 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("Complexity score: <scores["complexityScore"]>");
 	println("---------------------------");
 	println("Duplication");
-	println("Duplicates #: <scores["duplicatesNumber"]>");
-	println("Duplicates %: <scores["duplicatesPercentage"]>");
+	println("Duplicate lines #: <scores["duplicatesNumber"]>");
+	println("Duplicate lines %: <scores["duplicatesPercentage"]>");
 	println("Duplication score: <scores["duplicatesScore"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
 	println("---------------------------");
 }
