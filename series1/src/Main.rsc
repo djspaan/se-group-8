@@ -73,11 +73,11 @@ public map[str, str] calculateISOScore(map[str, value] scores) {
 }
 
 public void showISOScore(map[str, str] scores) {
-	println("| analysability	| <scores["analysability"]>");
-	println("| changeability 	| <scores["changeability"]>");
-	println("| stability 		| <scores["stability"]>");
-	println("| testability 		| <scores["testability"]>");
-	println("| reusability		| <scores["analysability"]>");
+	println("| analysability    | <scores["analysability"]>");
+	println("| changeability    | <scores["changeability"]>");
+	println("| stability        | <scores["stability"]>");
+	println("| testability      | <scores["testability"]>");
+	println("| reusability      | <scores["analysability"]>");
 }
 
 private int scoreToInt(value score) {
