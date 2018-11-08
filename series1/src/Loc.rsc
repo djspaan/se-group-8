@@ -12,15 +12,29 @@ import util::Resources;
 public int countLinesForProject(loc project) {
 	//loc project = |project://smallsql0.21_src|;
 	list[loc] files = allFiles(project);
-	return sum([countLinesForFile(file) | file <- files]);
+	return sum([countLinesForLocation(file) | file <- files]);
+}
+
+public str getRankForScore(int linesOfCode){
+	if(linesOfCode <= 66000){
+		return "++";
+	} else if(linesOfCode > 66000 && linesOfCode <= 246000){
+		return "+";
+	} else if(linesOfCode > 246000 && linesOfCode <= 665000){
+		return "o";
+	} else if(linesOfCode > 665000 && linesOfCode <= 1310000){
+		return "-";
+	} else {
+		return "--";
+	}
 }
 
 public list[loc] allFiles(loc project) {
 	return [f | /file(f) := getProject(project), f.extension == "java"];
 }
 
-public int countLinesForFile(loc file) {
-	str fileContents = readFile(file);
+public int countLinesForLocation(loc location) {
+	str fileContents = readFile(location);
 	str fileContentsWithoutComments = removeComments(fileContents);
 	list[str] lines = getLines(fileContentsWithoutComments);
 	list[str] filteredLines = filterLines(lines);
