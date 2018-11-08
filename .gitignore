@@ -1,3 +1,2 @@
-projects/*/bin/
-*/bin/
+bin/
 .metadata/
