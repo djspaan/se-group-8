@@ -7,7 +7,6 @@ import IO;
 import List;
 import Set;
 import Loc;
-
 import util::Math;
 
 public real getAverageUnitSizeForProject(loc location) {
@@ -30,6 +29,6 @@ public str getRankForUnitSizeScore(real avgUnitSize){
 	}
 }
 
-int getUnitSize(loc unit) {
+public int getUnitSize(loc unit) {
 	return countLinesForLocation(unit);
 }
