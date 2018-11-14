@@ -12,64 +12,103 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
 
+import Loc;
+import util::Trie;
+
 
 set[loc] getLocMethods(M3 m3){ 
 	return methods(m3);
 }
 
+str readMethod(loc mloc){
+	return removeComments(readFile(mloc));
+}
+
 rel[str, loc] methodSrcs(M3 m3){
-	return {<readFile(mloc), mloc> | loc mloc <- getLocMethods(m3)};
+	return {<readMethod(mloc), mloc> | loc mloc <- getLocMethods(m3)};
 }
 
-lrel[list[str], loc] methodLines(M3 m3){
-	return [<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- methodSrcs(m3)];
-}
-
-list[tuple[list[str], loc]] cleanMethodLines(M3 m3){
-	return [<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)];
-} 
-
-bool validLine(str line){
-	 if(size(line) == 0) return false;
-	 return true;
-}
-
-lrel[list[str], tuple[loc, int]] methodFragments(list[str] lines, loc methodLoc){
-	if(size(lines) < 6){
-		return [];
-	}
-	return [ <slice(lines, i, min(size(lines), 6)), <methodLoc, i>> | int i <- [0..max(1, size(lines) - 6)]];
-} 
-
-
-lrel[list[str], tuple[loc, int]] allFragments(M3 m3){
-	fragmentsPerMethod = [ methodFragments(lines, mloc) | <list[str] lines, loc mloc> <- cleanMethodLines(m3)];
-	return [<f, mloc> | lrel[list[str], tuple[loc, int]] fragmentSet <- fragmentsPerMethod
-					  , <list[str] f, tuple[loc, int] mloc> <- fragmentSet];
-}
 /*
- * Finds all blocks of length 6 and finds duplicates,
- * includes comments, documentation, etc, and combines them into a 
- * map mapping fragments to locations.
+ * Split method body to lines;
  */
-map[list[str], set[tuple[loc, int]]] duplicationMap(M3 m3) {
-	map[list[str], rel[loc, int]] fragmentLocMap = toMap(allFragments(m3));
-	return (frag: fragmentLocMap[frag] | list[str] frag <- fragmentLocMap, size(fragmentLocMap[frag]) > 1);
+rel[list[str], loc] methodLines(M3 m3){
+	return {<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- methodSrcs(m3)};
 }
 
-set[tuple[loc, int]] allDuplicationLines(M3 m3){
-	return {<location, offset + line> | duplocs <- range(duplicationMap(m3))
-									  , <loc location, int offset> <- duplocs
-									  , line <- [0..6] } ;
+/*
+ * Clean invalid (empty) lines
+ */
+rel[list[str], loc] cleanMethodLines(M3 m3){
+	return {<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)};
+} 
+
+Trie createLinesTrie(M3 m3){
+	rel[list[str], loc] lines = cleanMethodLines(m3);
+	return createSuffixTrie(lines, minSuffixLength=6);
 }
 
-int countDuplications(M3 m3){
-	return size(allDuplicationLines(m3));
+/** prune out all nodes without duplicates */
+Trie pruneTrie(Trie trie){
+	trie = bottom-up visit(trie){
+		case \node(_, {v}, _) => \emptyleaf()
+		case \node(cs, vs, d) => \node((k: cs[k] | k <- cs, !(\emptyleaf() := cs[k])), vs, d)
+	}	
+	return trie;
 }
 
-int countDuplicationsForProject(loc project){
+map[set[value], int] getAllDuplications(Trie trie){
+	if(\node(cs, vs, d) := trie){
+		map[set[value], int] childCounts = ();
+		for(k <- cs){
+			childCounts = childCounts + getAllDuplications(cs[k]); 	
+		}
+		if(size(cs) == 0){
+			childCounts = childCounts + (vs: d | v <- vs, d >= 6);
+		}			
+		return childCounts;
+	}
+	else{
+		throw RuntimeException("No.");
+	}
+}
+
+map[value, int] getDuplications(Trie trie){
+	dupes = getAllDuplications(trie);
+	flatDupes = (l: dupes[ls] | ls <- dupes, l <- ls);
+	blacklist = {};
+	for(<method, offset> <- flatDupes){
+		count = flatDupes[<method, offset>];
+		blacklist = blacklist + {<method, offset - i> | int i <- [1..count]};
+	}
+	return (k: flatDupes[k] | k <- flatDupes, k notin blacklist);
+}
+
+
+bool validLine(str l) = size(trim(l)) > 0;
+
+/* Finds all duplications of size >= 6, and returns a map of the set of locations where
+ * these duplications were found to the number of lines that are duplicated between these
+ * locations.
+ */
+public map[value, int] getDuplicationsForM3(M3 m3){
+	Trie trie = createLinesTrie(m3);
+	Trie duplicateTrie = pruneTrie(trie);
+	return getDuplications(duplicateTrie);
+}
+
+
+public map[value, int] getDuplicationsForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
-	return countDuplications(m3);
+	return getDuplicationsForM3(m3);
+}
+
+/** returns the ratio of number of duplications to the total lines considered as a tuple */
+public tuple[int, int] countDuplicationsForProject(loc project){
+	M3 m3 = createM3FromEclipseProject(project);
+	map[value, int] count = getDuplicationsForM3(m3);
+	int totalLines = (0 | it + size(lines) | <lines, _> <- cleanMethodLines(m3));
+	int duplicateCount = (0 | it + count[locs] | locs <- count);
+	return <duplicateCount, totalLines>;
 }
 
 
