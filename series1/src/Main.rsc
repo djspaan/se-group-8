@@ -28,8 +28,8 @@ public map[str, value] calculateScores(loc project) {
 	return (
 		"linesNumber": lines,
 		"linesScore": getRankForLineScore(lines),
-		"avgUnitSize": avgUnitSize,
-		"avgUnitSizeScore": getRankForUnitSizeScore(avgUnitSize),
+		"avgUnitSizeScore": avgUnitSize,
+		"avgUnitSizeRank": getRankForUnitSizeScore(avgUnitSize),
 		"complexityNumber": avgUnitComplexityForProject(project),
 		"complexityScore": "magic",
 		"duplicatesNumber": countDuplicationsForProject(project),
@@ -45,7 +45,8 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("Volume score: <scores["linesScore"]>");
 	println("---------------------------");
 	println("Unit Size & Complexity");
-	println("Average unit size: <scores["avgUnitSize"]>");
+	println("Average unit size: <scores["avgUnitSizeScore"]>");
+	println("Average unit size rank: <scores["avgUnitSizeRank"]>");
 	println("Cyclomatic complexity: <scores["complexityNumber"]>");
 	println("Complexity score: <scores["complexityScore"]>");
 	println("---------------------------");
