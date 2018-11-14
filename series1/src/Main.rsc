@@ -9,14 +9,15 @@ import UnitComplexity;
 import util::Math;
 
 public void main() {
-	map[str, value] sigScores = calculateScores(|project://smallsql0.21_src|);
+	calculateAndShowScores(|project://smallsql0.21_src|);
+	//calculateAndShowScores(|project://hsqldb-2.3.1|);
+}
+
+public void calculateAndShowScores(loc project) {
+	map[str, value] sigScores = calculateScores(project);
 	map[str, str] isoScores = calculateISOScore(sigScores);
 	showSIGMaintainabilityModel(sigScores);
 	showISOScore(isoScores);
-	//map[str, value] sigScores = calculateScores(|project://hsqldb-2.3.1|);
-	//map[str, int] isoScores = calculateISOScore(sigScores);
-	//showSIGMaintainabilityModel(sigScores);
-	//showISOScore(isoScores);
 }
 
 public map[str, value] calculateScores(loc project) {
