@@ -22,13 +22,14 @@ public void calculateAndShowScores(loc project) {
 
 public map[str, value] calculateScores(loc project) {
 	int lines = countLinesForProject(project);
+	real avgUnitSize = getAverageUnitSizeForProject(project);
 	int duplis = countDuplicationsForProject(project);
 	real duplipct = round(10000 * toReal(duplis) / lines) / 100.0;
 	return (
 		"linesNumber": lines,
-		"linesScore": getRankForScore(lines),
-		"avgUnitSize": getAverageUnitSizeForProject(project),
-		"avgUnitSizeScore": "TODO",
+		"linesScore": getRankForLineScore(lines),
+		"avgUnitSize": avgUnitSize,
+		"avgUnitSizeScore": getRankForUnitSizeScore(avgUnitSize),
 		"complexityNumber": avgUnitComplexityForProject(project),
 		"complexityScore": "magic",
 		"duplicatesNumber": countDuplicationsForProject(project),

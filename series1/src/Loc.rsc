@@ -15,7 +15,7 @@ public int countLinesForProject(loc project) {
 	return sum([countLinesForLocation(file) | file <- files]);
 }
 
-public str getRankForScore(int linesOfCode){
+public str getRankForLineScore(int linesOfCode){
 	if(linesOfCode <= 66000){
 		return "++";
 	} else if(linesOfCode > 66000 && linesOfCode <= 246000){

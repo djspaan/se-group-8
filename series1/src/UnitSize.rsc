@@ -16,6 +16,20 @@ public real getAverageUnitSizeForProject(loc location) {
 	return sum([getUnitSize(unit) | unit <- units]) / toReal(size(units));
 }
 
+public str getRankForUnitSizeScore(real avgUnitSize){
+	if(avgUnitSize <= 5){
+		return "++";
+	} else if(avgUnitSize > 5 && avgUnitSize <= 10){
+		return "+";
+	} else if(avgUnitSize > 10 && avgUnitSize <= 15){
+		return "o";
+	} else if(avgUnitSize > 15 && avgUnitSize <= 20){
+		return "-";
+	} else {
+		return "--";
+	}
+}
+
 int getUnitSize(loc unit) {
 	return countLinesForLocation(unit);
 }
