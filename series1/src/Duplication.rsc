@@ -110,5 +110,13 @@ public tuple[int, int] countDuplicationsForProject(loc project){
 	int duplicateCount = (0 | it + count[locs] | locs <- count);
 	return <duplicateCount, totalLines>;
 }
-
-
+public str getDuplicationScore(real duplicatepct){
+	scores = [s | <int n, str s> <- [
+		<5, "++">,
+		<10, "+">,
+		<15, "o">,
+		<25, "-">,
+		<-1, "--">
+	], n >= duplicatepct || n < 0];
+	return scores[0];
+} 

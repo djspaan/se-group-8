@@ -24,7 +24,7 @@ value runForHSqlDb(){
 	return avgComplexity(asts);
 }
 
-value avgUnitComplexityForProject(loc project){
+real avgUnitComplexityForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
 	asts = toList(getASTs(m3));
 	return avgComplexity(asts);
@@ -38,9 +38,9 @@ bool declIsMethod(Declaration d){
 }
 
 set[Declaration] getASTs(M3 m3){
-	set[M3] m3;
+	set[M3] m3s;
 	set[Declaration] fileasts;	
-	<m3, fileasts> = createM3sAndAstsFromFiles(files(m3));
+	<m3s, fileasts> = createM3sAndAstsFromFiles(files(m3));
 	set[Declaration] decls = {};
 	visit(fileasts){
 		case Declaration s: decls = decls + s;
@@ -76,4 +76,16 @@ list[int] getComplexities(list[node] asts){
 real avgComplexity(list[Declaration] asts){
 	if(size(asts) == 0) return 0.0;
 	return (0| it + c | c <- getComplexities(asts)) / toReal(size(asts));
+}
+
+
+public str getComplexityScore(real complexity){
+	scores = [s | <int n, str s> <- [
+		<5, "++">,
+		<10, "+">,
+		<15, "o">,
+		<25, "-">,
+		<-1, "--">
+	], n >= complexity || n < 0];
+	return scores[0];
 }

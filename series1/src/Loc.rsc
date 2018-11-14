@@ -42,7 +42,7 @@ private list[loc] allFiles(loc project) {
 	return [f | /file(f) := getProject(project), f.extension == "java"];
 }
 
-private str removeComments(str text) {
+public str removeComments(str text) {
 	return visit(text){
 			case /\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\// => " "
 	};

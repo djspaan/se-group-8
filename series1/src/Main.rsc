@@ -22,18 +22,19 @@ public void calculateAndShowScores(loc project) {
 public map[str, value] calculateScores(loc project) {
 	int lines = countLinesForProject(project);
 	real avgUnitSize = getAverageUnitSizeForProject(project);
-	int duplis = countDuplicationsForProject(project);
-	real duplipct = round(10000 * toReal(duplis) / lines) / 100.0;
+	<duplis, dupliTotalLinesCounted> = countDuplicationsForProject(project);
+	real duplipct = round(10000 * toReal(duplis) / dupliTotalLinesCounted) / 100.0;
+	real complexity = avgUnitComplexityForProject(project);
 	return (
 		"linesNumber": lines,
-		"linesScore": getRankForLineScore(lines),
+		"linesRank": getRankForLineScore(lines),
 		"avgUnitSizeScore": avgUnitSize,
 		"avgUnitSizeRank": getRankForUnitSizeScore(avgUnitSize),
-		"complexityNumber": avgUnitComplexityForProject(project),
-		"complexityScore": "magic",
-		"duplicatesNumber": countDuplicationsForProject(project),
-		"duplicatesPercentage": "<duplipct>%",
-		"duplicatesScore": "TODO"
+		"complexityNumber": complexity,
+		"complexityRank": getComplexityScore(complexity),
+		"duplicatesNumber": duplis,
+		"duplicatesPercentage": duplipct,
+		"duplicatesRank": getDuplicationScore(duplipct)
 		);
 }
 
@@ -41,26 +42,26 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("---------------------------");
 	println("Volume");
 	println("Total code lines: <scores["linesNumber"]>");
-	println("Volume score: <scores["linesScore"]>");
+	println("Volume score: <scores["linesRank"]>");
 	println("---------------------------");
 	println("Unit Size & Complexity");
 	println("Average unit size: <scores["avgUnitSizeScore"]>");
 	println("Average unit size rank: <scores["avgUnitSizeRank"]>");
 	println("Cyclomatic complexity: <scores["complexityNumber"]>");
-	println("Complexity score: <scores["complexityScore"]>");
+	println("Complexity score: <scores["complexityRank"]>");
 	println("---------------------------");
 	println("Duplication");
 	println("Duplicate lines #: <scores["duplicatesNumber"]>");
 	println("Duplicate lines %: <scores["duplicatesPercentage"]>");
-	println("Duplication score: <scores["duplicatesScore"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
+	println("Duplication score: <scores["duplicatesRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
 	println("---------------------------");
 }
 
 public map[str, str] calculateISOScore(map[str, value] scores) {
-	c = scoreToInt(scores["complexityScore"]);
-	u = scoreToInt(scores["avgUnitSizeScore"]);
-	v = scoreToInt(scores["linesScore"]);
-	d = scoreToInt(scores["duplicatesScore"]);
+	c = scoreToInt(scores["complexityRank"]);
+	u = scoreToInt(scores["avgUnitSizeRank"]);
+	v = scoreToInt(scores["linesRank"]);
+	d = scoreToInt(scores["duplicatesRank"]);
 	i = 0; // TODO: unitinterface;
 
 	analysability = (v + u + d) / 3;
