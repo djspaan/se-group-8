@@ -5,7 +5,6 @@ import Loc;
 import Duplication;
 import UnitSize;
 import UnitComplexity;
-
 import util::Math;
 
 public void main() {
@@ -69,15 +68,12 @@ public map[str, str] calculateISOScore(map[str, value] scores) {
 	//stability = ()/2;
 	stability = 0; // TODO
 	testability = (c + u) / 2;
-	// reusability = (u + i)/2; // TODO
-	reusability = 0;
 
 	return (
 		"analysability": intToScore(analysability),
 		"changeability": intToScore(changeability),
 		"stability": intToScore(stability),
-		"testability": intToScore(testability),
-		"reusability": intToScore(analysability)
+		"testability": intToScore(testability)
 	);
 }
 
@@ -86,7 +82,6 @@ public void showISOScore(map[str, str] scores) {
 	println("| changeability    | <scores["changeability"]>");
 	println("| stability        | <scores["stability"]>");
 	println("| testability      | <scores["testability"]>");
-	println("| reusability      | <scores["analysability"]>");
 }
 
 private int scoreToInt(value score) {
