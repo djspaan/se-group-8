@@ -5,25 +5,34 @@ import List;
 
 data Trie 
 	= \node(map[str, Trie] children, set[value] vs, int depth)
-	| \emptyleaf() // leaf exists as a workaround replacing pattern matching on empty maps
+	| \leaf(list[str] path, value v, int depth)
+	| \emptyleaf() // emptyleaf exists as a workaround replacing pattern matching on empty maps
 	;
 
 
 Trie newTrie(int depth = 0) = \node((), {}, depth);
 
 
+Trie insertTrie(\leaf([], value v, int depth), list[str] path, value newv){
+	return insertTrie(\node((), {v}, depth), path, newv);
+}
+
+Trie insertTrie(\leaf([str t, *ts], value v, int depth), list[str] path, value newv){
+	placeholder = \leaf(ts, v, depth + 1);
+	return insertTrie(\node((t:  placeholder), {v}, depth), path, newv);
+}
+
 Trie insertTrie(\node(cs, vs, depth), list[str] toks, value v){
 	switch(toks) {
 		case [token, *ts]: {
 				Trie child;
 	       		if(token notin cs) {
-	        		child = newTrie(depth = depth + 1);
+	        		child = leaf(ts, v, depth + 1);
 	    		}
 	    		else {
-	        		child = cs[token];
+	        		child = insertTrie(cs[token], ts, v);;
 	    		}
-				Trie newchild = insertTrie(child, ts, v);
-	    		return \node(cs + (token: newchild), vs + {v}, depth);
+	    		return \node(cs + (token: child), vs + {v}, depth);
     		}
     	case []:
     		return \node(cs, vs + {v}, depth);

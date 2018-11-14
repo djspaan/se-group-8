@@ -6,6 +6,7 @@ import List;
 import Set;
 import Map;
 import util::Math;
+import util::Benchmark;
 
 import lang::java::jdt::m3::Core;
 import lang::java::m3::Core;
@@ -42,14 +43,14 @@ rel[list[str], loc] cleanMethodLines(M3 m3){
 	return {<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)};
 } 
 
-Trie createLinesTrie(M3 m3){
-	rel[list[str], loc] lines = cleanMethodLines(m3);
+Trie createLinesTrie(rel[list[str], loc] lines){
 	return createSuffixTrie(lines, minSuffixLength=6);
 }
 
 /** prune out all nodes without duplicates */
 Trie pruneTrie(Trie trie){
 	trie = bottom-up visit(trie){
+		case \leaf(_, _, _) => \emptyleaf()
 		case \node(_, {v}, _) => \emptyleaf()
 		case \node(cs, vs, d) => \node((k: cs[k] | k <- cs, !(\emptyleaf() := cs[k])), vs, d)
 	}	
@@ -91,7 +92,11 @@ bool validLine(str l) = size(trim(l)) > 0;
  * locations.
  */
 public map[value, int] getDuplicationsForM3(M3 m3){
-	Trie trie = createLinesTrie(m3);
+	rel[list[str], loc] lines = cleanMethodLines(m3);
+	t0 = getMilliTime();
+	Trie trie = createLinesTrie(lines);
+	t1 = getMilliTime();
+	println("Time spent building trie: <t1 - t0> ms");
 	Trie duplicateTrie = pruneTrie(trie);
 	return getDuplications(duplicateTrie);
 }
