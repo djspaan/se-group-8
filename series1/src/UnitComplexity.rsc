@@ -32,12 +32,14 @@ value avgUnitComplexityForProject(loc project){
 
 
 bool declIsMethod(Declaration d){
-	return (  \method(x, y, z, u) := d) 
-		   || (\method(x, y, z, u, v) := d)
-		   || (\constructor(x, y, z, u) := d);
+	return (  \method(_, _, _, _) := d) 
+		   || (\method(_, _, _, _, _) := d)
+		   || (\constructor(_, _, _, _) := d);
 }
 
 set[Declaration] getASTs(M3 m3){
+	set[M3] m3;
+	set[Declaration] fileasts;	
 	<m3, fileasts> = createM3sAndAstsFromFiles(files(m3));
 	set[Declaration] decls = {};
 	visit(fileasts){
