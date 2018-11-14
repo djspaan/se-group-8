@@ -12,7 +12,7 @@ import util::Resources;
 public int countLinesForProject(loc project) {
 	M3 m3Project = createM3FromEclipseProject(project);
 	set[loc] files = classes(m3Project);
-	return sum([countLinesForLocation(file) | file <- files]);
+	return sum([countLinesForLocation(file) | loc file <- files]);
 }
 
 public str getRankForLineScore(int linesOfCode){
