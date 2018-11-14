@@ -12,7 +12,7 @@ import util::Resources;
 public int countLinesForProject(loc project) {
 	//loc project = |project://smallsql0.21_src|;
 	list[loc] files = allFiles(project);
-	return sum([countLinesForLocation(file) | file <- files]);
+	return sum([countLinesForLocation(file) | loc file <- files]);
 }
 
 public str getRankForLineScore(int linesOfCode){
