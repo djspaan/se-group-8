@@ -10,8 +10,8 @@ import IO;
 import util::Resources;
 
 public int countLinesForProject(loc project) {
-	//loc project = |project://smallsql0.21_src|;
-	list[loc] files = allFiles(project);
+	M3 m3Project = createM3FromEclipseProject(project);
+	set[loc] files = classes(m3Project);
 	return sum([countLinesForLocation(file) | loc file <- files]);
 }
 
@@ -29,10 +29,6 @@ public str getRankForLineScore(int linesOfCode){
 	}
 }
 
-public list[loc] allFiles(loc project) {
-	return [f | /file(f) := getProject(project), f.extension == "java"];
-}
-
 public int countLinesForLocation(loc location) {
 	str fileContents = readFile(location);
 	str fileContentsWithoutComments = removeComments(fileContents);
@@ -42,23 +38,27 @@ public int countLinesForLocation(loc location) {
 	
 }
 
-public str removeComments(str text) {
+private list[loc] allFiles(loc project) {
+	return [f | /file(f) := getProject(project), f.extension == "java"];
+}
+
+private str removeComments(str text) {
 	return visit(text){
-			case /\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\// => " "
+			case /\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\// => " "
 	};
 }
 
-public list[str] getLines(str text) {
+private list[str] getLines(str text) {
 	list[str] lines = split("\n", text);
 	return lines;
 }
 
-public list[str] filterLines(list[str] lines) {
+private list[str] filterLines(list[str] lines) {
 	lines = mapper(lines, filterLine);
-	return [line | line <- lines, line != "", !startsWith(line, "*")];
+	return [line | line <- lines, line != ""];
 }
 
-public str filterLine(str line) {
+private str filterLine(str line) {
 	line = replaceAll(line, "\r", "");
 	line = trim(line);
 	return line;
