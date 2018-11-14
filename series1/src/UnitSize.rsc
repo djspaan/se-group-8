@@ -11,6 +11,10 @@ import util::Math;
 
 public real getAverageUnitSizeForProject(loc location) {
 	M3 project = createM3FromEclipseProject(location);
+	return getAverageUnitSizeForM3(project);
+}
+
+public real getAverageUnitSizeForM3(M3 project) {
 	set[loc] units = methods(project);
 	return sum([getUnitSize(unit) | unit <- units]) / toReal(size(units));
 }

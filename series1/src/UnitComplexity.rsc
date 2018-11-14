@@ -26,6 +26,9 @@ value runForHSqlDb(){
 
 real avgUnitComplexityForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
+}
+
+real avgUnitComplexityForM3(M3 m3){
 	asts = toList(getASTs(m3));
 	return avgComplexity(asts);
 }

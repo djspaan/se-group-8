@@ -49,9 +49,13 @@ Trie createLinesTrie(rel[list[str], loc] lines){
 
 /** prune out all nodes without duplicates */
 Trie pruneTrie(Trie trie){
-	trie = bottom-up visit(trie){
+
+	// 1 bottom-up visit with all 3 cases would have the same effect, but is slower.
+	trie = top-down visit(trie){
 		case \leaf(_, _, _) => \emptyleaf()
 		case \node(_, {v}, _) => \emptyleaf()
+	}
+	trie = top-down visit(trie){
 		case \node(cs, vs, d) => \node((k: cs[k] | k <- cs, !(\emptyleaf() := cs[k])), vs, d)
 	}	
 	return trie;
@@ -96,7 +100,7 @@ public map[value, int] getDuplicationsForM3(M3 m3){
 	t0 = getMilliTime();
 	Trie trie = createLinesTrie(lines);
 	t1 = getMilliTime();
-	println("Time spent building trie: <t1 - t0> ms");
+	println("Time spent building trie: <t1 - t0> ms"); // = negligible :)
 	Trie duplicateTrie = pruneTrie(trie);
 	return getDuplications(duplicateTrie);
 }
@@ -107,14 +111,19 @@ public map[value, int] getDuplicationsForProject(loc project){
 	return getDuplicationsForM3(m3);
 }
 
-/** returns the ratio of number of duplications to the total lines considered as a tuple */
 public tuple[int, int] countDuplicationsForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
+	return countDuplicationsForM3(m3);
+}
+
+/** returns the ratio of number of duplications to the total lines considered as a tuple */
+public tuple[int, int] countDuplicationsForM3(M3 m3){
 	map[value, int] count = getDuplicationsForM3(m3);
 	int totalLines = (0 | it + size(lines) | <lines, _> <- cleanMethodLines(m3));
 	int duplicateCount = (0 | it + count[locs] | locs <- count);
 	return <duplicateCount, totalLines>;
 }
+
 public str getDuplicationScore(real duplicatepct){
 	scores = [s | <int n, str s> <- [
 		<5, "++">,

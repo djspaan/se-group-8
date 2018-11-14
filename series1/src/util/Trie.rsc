@@ -6,7 +6,7 @@ import List;
 data Trie 
 	= \node(map[str, Trie] children, set[value] vs, int depth)
 	| \leaf(list[str] path, value v, int depth)
-	| \emptyleaf() // emptyleaf exists as a workaround replacing pattern matching on empty maps
+	| \emptyleaf() // emptyleaf exists as a workaround for rascal not supporting pattern matching on empty maps
 	;
 
 
@@ -18,8 +18,8 @@ Trie insertTrie(\leaf([], value v, int depth), list[str] path, value newv){
 }
 
 Trie insertTrie(\leaf([str t, *ts], value v, int depth), list[str] path, value newv){
-	placeholder = \leaf(ts, v, depth + 1);
-	return insertTrie(\node((t:  placeholder), {v}, depth), path, newv);
+	newleaf = \leaf(ts, v, depth + 1);
+	return insertTrie(\node((t: newleaf), {v}, depth), path, newv);
 }
 
 Trie insertTrie(\node(cs, vs, depth), list[str] toks, value v){

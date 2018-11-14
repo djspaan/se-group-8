@@ -1,6 +1,7 @@
 module Loc
 
 import lang::java::m3::Core;
+import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import Set;
@@ -9,11 +10,19 @@ import List;
 import IO;
 import util::Resources;
 
+public M3 projectM3(loc project){
+	return createM3FromEclipseProject(project);
+}
+
 public int countLinesForProject(loc project) {
 	M3 m3Project = createM3FromEclipseProject(project);
+	return countLinesForM3(m3Project);
+}
+public int countLinesForM3(M3 m3Project) {
 	set[loc] files = classes(m3Project);
 	return sum([countLinesForLocation(file) | loc file <- files]);
 }
+
 
 public str getRankForLineScore(int linesOfCode){
 	if(linesOfCode <= 66000){
@@ -44,7 +53,8 @@ private list[loc] allFiles(loc project) {
 
 public str removeComments(str text) {
 	return visit(text){
-			case /\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\// => " "
+		case /^(\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\/)/ => " "
+		case /<s:^[a-zA-Z0-9_ (){}\[\]:;,.\t@]+>/ => s // whitelist irrelevant lines -> big performance boost
 	};
 }
 

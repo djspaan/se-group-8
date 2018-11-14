@@ -6,6 +6,7 @@ import Duplication;
 import UnitSize;
 import UnitComplexity;
 import util::Math;
+import util::Benchmark;
 
 public void main() {
 	calculateAndShowScores(|project://smallsql0.21_src|);
@@ -19,12 +20,25 @@ public void calculateAndShowScores(loc project) {
 	showISOScore(isoScores);
 }
 
-public map[str, value] calculateScores(loc project) {
-	int lines = countLinesForProject(project);
-	real avgUnitSize = getAverageUnitSizeForProject(project);
-	<duplis, dupliTotalLinesCounted> = countDuplicationsForProject(project);
+public map[str, value] calculateScores(loc location) {
+	project = projectM3(location);
+	int t0 = getMilliTime();
+	int lines = countLinesForM3(project);
+	int t1 = getMilliTime();
+	real avgUnitSize = getAverageUnitSizeForM3(project);
+	int t2 = getMilliTime();
+	<duplis, dupliTotalLinesCounted> = countDuplicationsForM3(project);
 	real duplipct = round(10000 * toReal(duplis) / dupliTotalLinesCounted) / 100.0;
-	real complexity = avgUnitComplexityForProject(project);
+	int t3 = getMilliTime();
+	real complexity = avgUnitComplexityForM3(project);
+	int t4 = getMilliTime();
+	
+	println("Benchmarks: ");
+	println("count lines: <t1 - t0> ms");
+	println("  unit size: <t2 - t1> ms");
+	println("duplication: <t3 - t2> ms");
+	println(" complexity: <t4 - t3> ms");
+	println("      total: <t4 - t0> ms");
 	return (
 		"linesNumber": lines,
 		"linesRank": getRankForLineScore(lines),
