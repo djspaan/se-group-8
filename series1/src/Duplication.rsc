@@ -44,7 +44,7 @@ rel[list[str], loc] cleanMethodLines(M3 m3){
 	return {<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)};
 } 
 
-Trie[tuple[loc, int]] createLinesTrie(rel[list[str], loc] lines){
+Trie createLinesTrie(rel[list[str], loc] lines){
 	t0 = getMilliTime();
 	trie = createSuffixTrie(lines, minSuffixLength=6);
 	t1 = getMilliTime();

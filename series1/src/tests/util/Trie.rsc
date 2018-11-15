@@ -15,11 +15,11 @@ set[str] getValues(\node(children, vs, _), [str token, *path]){
 }
 
 set[str] getValues(\node(_, vs, _), []) = vs;
-set[str] getValues(Trie[str] _, list[str] _) = {};
+set[str] getValues(Trie _, list[str] _) = {};
 
 
 test bool testInsertTrie(rel[list[str], str] keyValuePairs){
-	Trie[str] trie = \node((), {}, 0);
+	Trie trie = \node((), {}, 0);
 	for(<k, v> <- keyValuePairs){
 		trie = insertTrie(trie, k, v);
 	}
@@ -40,7 +40,7 @@ test bool testInsertLeaf(list[str] k, str val){
 		case []: return true;
 		case [_]: return true;
 		case [a, *bc]:{
-			Trie[str] trie = \node((), {}, 0);
+			Trie trie = \node((), {}, 0);
 			\node(cs, _, _) = insertTrie(trie, [a, *bc], val);
 			return (\leaf(bc, _, _) := cs[a]);
 		}
