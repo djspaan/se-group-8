@@ -5,6 +5,7 @@ import String;
 import List;
 import Set;
 import Map;
+import Exception;
 import util::Math;
 import util::Benchmark;
 
@@ -17,7 +18,7 @@ import Loc;
 import util::Trie;
 
 
-set[loc] getLocMethods(M3 m3){ 
+set[loc] getMethodLocs(M3 m3){ 
 	return methods(m3);
 }
 
@@ -26,7 +27,7 @@ str readMethod(loc mloc){
 }
 
 rel[str, loc] methodSrcs(M3 m3){
-	return {<readMethod(mloc), mloc> | loc mloc <- getLocMethods(m3)};
+	return {<readMethod(mloc), mloc> | loc mloc <- getMethodLocs(m3)};
 }
 
 /*
@@ -43,8 +44,12 @@ rel[list[str], loc] cleanMethodLines(M3 m3){
 	return {<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)};
 } 
 
-Trie createLinesTrie(rel[list[str], loc] lines){
-	return createSuffixTrie(lines, minSuffixLength=6);
+Trie[tuple[loc, int]] createLinesTrie(rel[list[str], loc] lines){
+	t0 = getMilliTime();
+	trie = createSuffixTrie(lines, minSuffixLength=6);
+	t1 = getMilliTime();
+	println(" Building trie took <t1 - t0> ms");
+	return trie;
 }
 
 /** prune out all nodes without duplicates */
@@ -73,7 +78,7 @@ map[set[value], int] getAllDuplications(Trie trie){
 		return childCounts;
 	}
 	else{
-		throw RuntimeException("No.");
+		throw IllegalArgument("Non-\\node type trie nodes must be pruned before applying getAllDuplications.");
 	}
 }
 
@@ -81,7 +86,7 @@ map[value, int] getDuplications(Trie trie){
 	dupes = getAllDuplications(trie);
 	flatDupes = (l: dupes[ls] | ls <- dupes, l <- ls);
 	blacklist = {};
-	for(<method, offset> <- flatDupes){
+	for(<loc method, int offset> <- flatDupes){
 		count = flatDupes[<method, offset>];
 		blacklist = blacklist + {<method, offset - i> | int i <- [1..count]};
 	}
@@ -100,7 +105,7 @@ public map[value, int] getDuplicationsForM3(M3 m3){
 	t0 = getMilliTime();
 	Trie trie = createLinesTrie(lines);
 	t1 = getMilliTime();
-	println("Time spent building trie: <t1 - t0> ms"); // = negligible :)
+	//println("Time spent building trie: <t1 - t0> ms"); // = negligible :)
 	Trie duplicateTrie = pruneTrie(trie);
 	return getDuplications(duplicateTrie);
 }
@@ -119,7 +124,7 @@ public tuple[int, int] countDuplicationsForProject(loc project){
 /** returns the ratio of number of duplications to the total lines considered as a tuple */
 public tuple[int, int] countDuplicationsForM3(M3 m3){
 	map[value, int] count = getDuplicationsForM3(m3);
-	int totalLines = (0 | it + size(lines) | <lines, _> <- cleanMethodLines(m3));
+	int totalLines = (0 | it + size(lines) | <list[str] lines, _> <- cleanMethodLines(m3));
 	int duplicateCount = (0 | it + count[locs] | locs <- count);
 	return <duplicateCount, totalLines>;
 }

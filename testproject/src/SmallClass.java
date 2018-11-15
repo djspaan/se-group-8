@@ -6,6 +6,9 @@ public class SmallClass {
 	
 	SmallClass() {
 		var1 = 1;
+		/* "string in comment"; */
+		String s = "/* comment in string */";
+		char c = '\"';
 	}
 	
 	int getVar1() {
@@ -16,12 +19,13 @@ public class SmallClass {
 		
 		// additional useless calculations
 		int res4 = res2 + res3;
+
 		int res5 = res4 + 1;
 		
 		if	(res4 > res5) {
 			return 1;
 		}
-		
+
 		return res;
 	}
 	

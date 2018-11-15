@@ -3,26 +3,26 @@ module util::Trie
 import List;
 
 
-data Trie 
-	= \node(map[str, Trie] children, set[value] vs, int depth)
-	| \leaf(list[str] path, value v, int depth)
+data Trie[&Val]
+	= \node(map[str, Trie] children, set[&Val] vs, int depth)
+	| \leaf(list[str] path, &Val v, int depth)
 	| \emptyleaf() // emptyleaf exists as a workaround for rascal not supporting pattern matching on empty maps
 	;
 
 
-Trie newTrie(int depth = 0) = \node((), {}, depth);
+Trie[&Val] newTrie(int depth = 0) = \node((), {}, depth);
 
 
-Trie insertTrie(\leaf([], value v, int depth), list[str] path, value newv){
+Trie[&Val] insertTrie(\leaf([], &Val v, int depth), list[str] path, &Val newv){
 	return insertTrie(\node((), {v}, depth), path, newv);
 }
 
-Trie insertTrie(\leaf([str t, *ts], value v, int depth), list[str] path, value newv){
+Trie[&Val] insertTrie(\leaf([str t, *ts], &Val v, int depth), list[str] path, &Val newv){
 	newleaf = \leaf(ts, v, depth + 1);
 	return insertTrie(\node((t: newleaf), {v}, depth), path, newv);
 }
 
-Trie insertTrie(\node(cs, vs, depth), list[str] toks, value v){
+Trie[&Val] insertTrie(\node(cs, vs, depth), list[str] toks, &Val v){
 	switch(toks) {
 		case [token, *ts]: {
 				Trie child;
@@ -44,7 +44,7 @@ list[list[str]] suffixes(list[str] toks){
 	return [slice(toks, i, n - i) | i <- [0..n]];
 }
 
-Trie insertSuffixes(Trie trie, list[str] toks, value v, int minLength = 0){
+Trie[tuple[&Val, int]] insertSuffixes(Trie[tuple[&Val, int]] trie, list[str] toks, &Val v, int minLength = 0){
 	int i = 0;
 	for(list[str] suffix <- suffixes(toks)){
 		if(size(suffix) < minLength) continue;
@@ -54,8 +54,8 @@ Trie insertSuffixes(Trie trie, list[str] toks, value v, int minLength = 0){
 	return trie;
 }
 
-Trie createSuffixTrie(rel[list[str], value] elems, int minSuffixLength = 0){
-	Trie trie = newTrie();
+Trie[tuple[&Val, int]] createSuffixTrie(rel[list[str], &Val] elems, int minSuffixLength = 0){
+	Trie[tuple[&Val, int]] trie = \node((), {}, 0);
 	for(<toks, v> <- elems){
 		trie = insertSuffixes(trie, toks, v, minLength=minSuffixLength);
 	}

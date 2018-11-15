@@ -40,6 +40,7 @@ bool declIsMethod(Declaration d){
 		   || (\constructor(_, _, _, _) := d);
 }
 
+
 set[Declaration] getASTs(M3 m3){
 	set[M3] m3s;
 	set[Declaration] fileasts;	

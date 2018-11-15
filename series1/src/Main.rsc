@@ -34,7 +34,7 @@ public map[str, value] calculateScores(loc location) {
 	real complexity = avgUnitComplexityForM3(project);
 	int t4 = getMilliTime();
 	
-	println("Benchmarks: ");
+	println("Time: ");
 	println("count lines: <t1 - t0> ms");
 	println("  unit size: <t2 - t1> ms");
 	println("duplication: <t3 - t2> ms");
