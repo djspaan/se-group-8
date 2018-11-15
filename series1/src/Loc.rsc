@@ -54,7 +54,7 @@ private list[loc] allFiles(loc project) {
 public str removeComments(str text) {
 	return visit(text){
 		case /^(\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\/)/ => " "
-		case /<s:^[a-zA-Z0-9_ (){}\[\]:;,.\t@]+>/ => s // whitelist irrelevant lines -> big performance boost
+		case /<s:^[^\/\\*"]+>/ => s // whitelist irrelevant chars -> big performance boost
 	};
 }
 
