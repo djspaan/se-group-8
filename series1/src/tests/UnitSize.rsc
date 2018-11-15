@@ -12,6 +12,7 @@ import lang::java::jdt::m3::AST;
 test bool getScoreForEmptyClass() {
 	M3 project = createM3FromEclipseProject(|project://testproject|);
 	set[loc] units = methods(project);
+	println(units);
 	return size(units) == 0;
 }
 

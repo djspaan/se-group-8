@@ -10,7 +10,7 @@ import util::Benchmark;
 
 public void main() {
 	calculateAndShowScores(|project://smallsql0.21_src|);
-	//calculateAndShowScores(|project://hsqldb-2.3.1|);
+	calculateAndShowScores(|project://hsqldb-2.3.1|);
 }
 
 public void calculateAndShowScores(loc project) {

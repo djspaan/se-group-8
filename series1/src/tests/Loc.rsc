@@ -8,7 +8,7 @@ test bool getScoreForEmptyClass() {
 }
 
 test bool getScoreForSmallClass() {
-	return countLinesForLocation(|project://testproject/src//SmallClass.java|) == 10;
+	return countLinesForLocation(|project://testproject/src//SmallClass.java|) == 28;
 }
 
 test bool getRankForLineScorePlusPlus() {
