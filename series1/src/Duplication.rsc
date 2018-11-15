@@ -94,7 +94,7 @@ map[value, int] getDuplications(Trie trie){
 }
 
 
-bool validLine(str l) = size(trim(l)) > 0;
+bool validLine(str l) = size(l) > 0;
 
 /* Finds all duplications of size >= 6, and returns a map of the set of locations where
  * these duplications were found to the number of lines that are duplicated between these

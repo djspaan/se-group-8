@@ -53,8 +53,23 @@ private list[loc] allFiles(loc project) {
 
 public str removeComments(str text) {
 	return visit(text){
-		case /^(\*.*|\/\/.*|(\"(?:\\\\[^\"]|\\\\\"|.)*?\")|(?s)\/\\*.*?\\*\/)/ => " "
-		case /<s:^[^\/\\*"]+>/ => s // whitelist irrelevant chars -> big performance boost
+		
+	    // Special case: '\"'
+		case /^<s:'\\"'>/ => s
+
+	    // Strings. Not 100% correct, but will work for most cases. 
+	    // The goal is to prevent accidentally filtering out strings that look like comments.
+		case /^<s:"([^"\r\n]+|\\")*">/ => s
+
+		// /*...*/
+		case /^<ws:\s*>(\/\*([^*]+|\*[^\/])*\*\/)/ => " "
+
+		// //...
+		case /^<s:\/\/[^\r\n]*>/ => " " 
+		
+		// whitelist irrelevant chars --> big performance boost
+		case /^<s:[^\/"']+>/ => s 
+
 	};
 }
 
