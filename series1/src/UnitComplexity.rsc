@@ -10,6 +10,7 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
  
+import util::AST;
 
 
 value runForSmallSQL(){

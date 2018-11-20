@@ -46,3 +46,19 @@ test bool testInsertLeaf(list[str] k, str val){
 		}
 	}
 }
+
+/**
+ * Test if leafs are expanded into nodes
+ */
+test bool testInsertIntoLeaf(list[str] k, str val){
+	switch(k){
+		case []: return true;
+		case [_]: return true;
+		case [a, *bc, d]:{
+			Trie trie0 = \node((), {}, 0);
+			trie1 = insertTrie(trie0, [a, *bc], val);
+			\node(cs, _, _) = insertTrie(trie1, [a, *bc, d], "<val>2");
+			return (\node(_, _, _) := cs[a]);
+		}
+	}
+}

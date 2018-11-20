@@ -48,7 +48,7 @@ Trie createLinesTrie(rel[list[str], loc] lines){
 	t0 = getMilliTime();
 	trie = createSuffixTrie(lines, minSuffixLength=6);
 	t1 = getMilliTime();
-	println(" Building trie took <t1 - t0> ms");
+	//println(" Building trie took <t1 - t0> ms");
 	return trie;
 }
 
@@ -82,7 +82,7 @@ map[set[value], int] getAllDuplications(Trie trie){
 	}
 }
 
-map[value, int] getDuplications(Trie trie){
+map[value, int] getUniqueDuplications(Trie trie){
 	dupes = getAllDuplications(trie);
 	flatDupes = (l: dupes[ls] | ls <- dupes, l <- ls);
 	blacklist = {};
@@ -107,7 +107,7 @@ public map[value, int] getDuplicationsForM3(M3 m3){
 	t1 = getMilliTime();
 	//println("Time spent building trie: <t1 - t0> ms"); // = negligible :)
 	Trie duplicateTrie = pruneTrie(trie);
-	return getDuplications(duplicateTrie);
+	return getUniqueDuplications(duplicateTrie);
 }
 
 
