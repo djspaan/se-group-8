@@ -13,7 +13,7 @@ import util::Benchmark;
 
 public void main() {
 	calculateAndShowScores(|project://smallsql0.21_src|);
-	//calculateAndShowScores(|project://hsqldb-2.3.1|);
+	calculateAndShowScores(|project://hsqldb-2.3.1|);
 }
 
 public void calculateAndShowScores(loc project) {
@@ -71,7 +71,11 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("Unit complexity scores:");
 	if(list[tuple[int, real]] cmps := scores["unitComplexities"]){
 		for(<bin, count> <- cmps){
-			println("<right("<bin>", 10, " ")>: <count * 100>%");
+			if (bin == 1000000) {
+				println("<right("25+", 10, " ")>: <count * 100>%");
+			} else {
+				println("<right("<bin>", 10, " ")>: <count * 100>%");
+			}
 		}
 	}
 	else{
