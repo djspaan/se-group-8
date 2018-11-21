@@ -62,10 +62,10 @@ public str removeComments(str text) {
 		case /^<s:"([^"\r\n]+|\\")*">/ => s
 
 		// /*...*/
-		case /^<ws:\s*>(\/\*([^*]+|\*[^\/])*\*\/)/ => " "
+		case /^<ws1:\s*>(\/\*([^*]+|\*[^\/])*\*\/)<ws2:\s*>/ => (ws1 + ws2) == "" ? " " : ws1 + ws2
 
 		// //...
-		case /^<s:\/\/[^\r\n]*>/ => " " 
+		case /^<s:\/\/[^\r\n]*><lb:\n?>/ => " <lb>" 
 		
 		// whitelist irrelevant chars --> big performance boost
 		case /^<s:[^\/"']+>/ => s 

@@ -9,8 +9,6 @@ import lang::java::jdt::m3::Core;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
- 
-import util::AST;
 
 
 value runForSmallSQL(){
@@ -29,7 +27,7 @@ real avgUnitComplexityForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
 }
 
-real avgUnitComplexityForM3(M3 m3){
+tuple[list[int], real] unitComplexitiesForM3(M3 m3){
 	asts = toList(getASTs(m3));
 	return avgComplexity(asts);
 }
@@ -78,9 +76,22 @@ list[int] getComplexities(list[node] asts){
 	return [getComplexity(ast) | ast <- asts];
 }
 
-real avgComplexity(list[Declaration] asts){
+tuple[list[int], real] avgComplexity(list[Declaration] asts){
 	if(size(asts) == 0) return 0.0;
-	return (0| it + c | c <- getComplexities(asts)) / toReal(size(asts));
+	complexities = getComplexities(asts);
+	avg = (0| it + c | c <- complexities) / toReal(size(asts));
+	return <complexities, avg>;
+}
+
+lrel[int, real] complexityBins(list[int] complexities){
+	binVals = [5, 10, 15, 25, 1000000];
+	map[int, real] bins = (v: 0.0 | v <- binVals);
+	int total = size(complexities);
+	for(c <- complexities){
+		binVal = [b | b <- binVals, b >= c][0];
+		bins[binVal] += 1.0 / total;
+	}
+	return sort([<bin, bins[bin]> | bin <- bins]);
 }
 
 

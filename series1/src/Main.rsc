@@ -3,6 +3,8 @@ module Main
 import IO;
 import Loc;
 import Duplication;
+import String;
+import Type;
 import UnitSize;
 import UnitComplexity;
 import util::Math;
@@ -11,7 +13,7 @@ import util::Benchmark;
 
 public void main() {
 	calculateAndShowScores(|project://smallsql0.21_src|);
-	calculateAndShowScores(|project://hsqldb-2.3.1|);
+	//calculateAndShowScores(|project://hsqldb-2.3.1|);
 }
 
 public void calculateAndShowScores(loc project) {
@@ -31,15 +33,15 @@ public map[str, value] calculateScores(loc location) {
 	<duplis, dupliTotalLinesCounted> = countDuplicationsForM3(project);
 	real duplipct = round(10000 * toReal(duplis) / dupliTotalLinesCounted) / 100.0;
 	int t3 = getMilliTime();
-	real complexity = avgUnitComplexityForM3(project);
+	<unitCpls, complexity> = unitComplexitiesForM3(project);
 	int t4 = getMilliTime();
 	
-	println("Time: ");
-	println("count lines: <t1 - t0> ms");
-	println("  unit size: <t2 - t1> ms");
-	println("duplication: <t3 - t2> ms");
-	println(" complexity: <t4 - t3> ms");
-	println("      total: <t4 - t0> ms");
+	println("Time ");
+	println("Count lines: <t1 - t0> ms");
+	println("Unit size: <t2 - t1> ms");
+	println("Duplication: <t3 - t2> ms");
+	println("Complexity: <t4 - t3> ms");
+	println("Total: <t4 - t0> ms");
 	return (
 		"linesNumber": lines,
 		"linesRank": getRankForLineScore(lines),
@@ -47,6 +49,7 @@ public map[str, value] calculateScores(loc location) {
 		"avgUnitSizeRank": getRankForUnitSizeScore(avgUnitSize),
 		"complexityNumber": complexity,
 		"complexityRank": getComplexityScore(complexity),
+		"unitComplexities": complexityBins(unitCpls),
 		"duplicatesNumber": duplis,
 		"duplicatesPercentage": duplipct,
 		"duplicatesRank": getDuplicationScore(duplipct)
@@ -62,8 +65,19 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("Unit Size & Complexity");
 	println("Average unit size: <scores["avgUnitSizeScore"]>");
 	println("Average unit size rank: <scores["avgUnitSizeRank"]>");
+	println("---------------------------");
 	println("Cyclomatic complexity: <scores["complexityNumber"]>");
 	println("Complexity score: <scores["complexityRank"]>");
+	println("Unit complexity scores:");
+	if(list[tuple[int, real]] cmps := scores["unitComplexities"]){
+		for(<bin, count> <- cmps){
+			println("<right("<bin>", 10, " ")>: <count * 100>%");
+		}
+	}
+	else{
+		println("????");
+	}
+		
 	println("---------------------------");
 	println("Duplication");
 	println("Duplicate lines #: <scores["duplicatesNumber"]>");
