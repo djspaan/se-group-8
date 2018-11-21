@@ -55,7 +55,7 @@ public str removeComments(str text) {
 	return visit(text){
 		
 	    // Special case: '\"'
-		case /^<s:'\\"'>/ => s
+		case /^<s:'("|\\")'>/ => s
 
 	    // Strings. Not 100% correct, but will work for most cases. 
 	    // The goal is to prevent accidentally filtering out strings that look like comments.
