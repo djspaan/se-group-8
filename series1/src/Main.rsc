@@ -3,7 +3,9 @@ module Main
 import IO;
 import Loc;
 import Duplication;
+import PackageIndependence;
 import String;
+import Set;
 import Type;
 import UnitSize;
 import UnitComplexity;
@@ -13,6 +15,7 @@ import util::Benchmark;
 
 public void main() {
 	calculateAndShowScores(|project://smallsql0.21_src|);
+	println("");
 	calculateAndShowScores(|project://hsqldb-2.3.1|);
 }
 
@@ -25,6 +28,8 @@ public void calculateAndShowScores(loc project) {
 
 public map[str, value] calculateScores(loc location) {
 	project = projectM3(location);
+	println("Statistics for: <location>");
+	println("---------------------------");
 	int t0 = getMilliTime();
 	int lines = countLinesForM3(project);
 	int t1 = getMilliTime();
@@ -33,26 +38,38 @@ public map[str, value] calculateScores(loc location) {
 	<duplis, dupliTotalLinesCounted> = countDuplicationsForM3(project);
 	real duplipct = round(10000 * toReal(duplis) / dupliTotalLinesCounted) / 100.0;
 	int t3 = getMilliTime();
-	<unitCpls, complexity> = unitComplexitiesForM3(project);
+	<unitCpls, meanComplexity> = complexityScoreForM3(project);
 	int t4 = getMilliTime();
-	
+	real independence = meanIndependenceScoreForM3(project);
+	real independencePct = 100 * independence;
+	str independenceRank = getRankForIndependenceScore(independence);
+	int t5 = getMilliTime();
+	real tests = meanTestScoreForM3(project);
+	real testsPct = 100 * tests;
+	int t6 = getMilliTime();
+
 	println("Time ");
 	println("Count lines: <t1 - t0> ms");
 	println("Unit size: <t2 - t1> ms");
 	println("Duplication: <t3 - t2> ms");
 	println("Complexity: <t4 - t3> ms");
-	println("Total: <t4 - t0> ms");
+	println("Independence: <t5 - t4> ms");
+	println("Tests: <t6 - t4> ms");
+	println("Total: <t6 - t0> ms");
 	return (
 		"linesNumber": lines,
 		"linesRank": getRankForLineScore(lines),
 		"avgUnitSizeScore": avgUnitSize,
 		"avgUnitSizeRank": getRankForUnitSizeScore(avgUnitSize),
-		"complexityNumber": complexity,
-		"complexityRank": getComplexityScore(complexity),
+		"meanComplexity": meanComplexity,
+		"complexityRank": getComplexityScore(meanComplexity),
 		"unitComplexities": complexityBins(unitCpls),
 		"duplicatesNumber": duplis,
 		"duplicatesPercentage": duplipct,
-		"duplicatesRank": getDuplicationScore(duplipct)
+		"duplicatesRank": getDuplicationScore(duplipct),
+		"independenceRank": independenceRank,
+		"independencePercentage": independencePct,
+		"testsPercentage": testsPct
 		);
 }
 
@@ -63,10 +80,10 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("Volume score: <scores["linesRank"]>");
 	println("---------------------------");
 	println("Unit Size & Complexity");
-	println("Average unit size: <scores["avgUnitSizeScore"]>");
-	println("Average unit size rank: <scores["avgUnitSizeRank"]>");
+	println("Mean unit size: <scores["avgUnitSizeScore"]>");
+	println("Mean unit size rank: <scores["avgUnitSizeRank"]>");
 	println("---------------------------");
-	println("Cyclomatic complexity: <scores["complexityNumber"]>");
+	println("Mean cyclomatic complexity: <scores["meanComplexity"]>");
 	println("Complexity score: <scores["complexityRank"]>");
 	println("Unit complexity scores:");
 	if(list[tuple[int, real]] cmps := scores["unitComplexities"]){
@@ -81,34 +98,45 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	else{
 		println("????");
 	}
-		
+
 	println("---------------------------");
 	println("Duplication");
 	println("Duplicate lines #: <scores["duplicatesNumber"]>");
 	println("Duplicate lines %: <scores["duplicatesPercentage"]>");
 	println("Duplication score: <scores["duplicatesRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
 	println("---------------------------");
+	println("Package Independence");
+	println("LoC in public modules %: <scores["independencePercentage"]>");
+	println("Independence score: <scores["independenceRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
+	println("---------------------------");
+	println("Testing");
+	println("LoC in tested modules %: <scores["testsPercentage"]>");
+	//println("Independence score: <scores["independenceRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
+	println("---------------------------");
 }
 
+public map[str, set[str]] isoMatrix = (
+		"analysability": {"linesRank", "avgUnitSizeRank", "complexityRank"},
+		"changeability": {"complexityRank", "duplicatesRank"},
+		"stability": {},
+		"testability": {"avgUnitSizeRank", "complexityRank"}
+);
+
+
 public map[str, str] calculateISOScore(map[str, value] scores) {
-	c = scoreToInt(scores["complexityRank"]);
-	u = scoreToInt(scores["avgUnitSizeRank"]);
-	v = scoreToInt(scores["linesRank"]);
-	d = scoreToInt(scores["duplicatesRank"]);
-	i = 0; // TODO: unitinterface;
-
-	analysability = (v + u + d) / 3;
-	changeability = (c + d) / 2;
-	//stability = ()/2;
-	stability = 0; // TODO
-	testability = (c + u) / 2;
-
-	return (
-		"analysability": intToScore(analysability),
-		"changeability": intToScore(changeability),
-		"stability": intToScore(stability),
-		"testability": intToScore(testability)
-	);
+	map[str, int] intResults = ();
+	for(score <- isoMatrix){
+		ranks = isoMatrix[score];
+		intResults[score] = 0;
+		if(ranks == {}) {
+			continue;
+		}
+		for(rank <- ranks){
+			intResults[score] += scoreToInt(scores[rank]);
+		}
+		intResults[score] /= size(ranks);
+	}
+	return (k: intToScore(intResults[k]) | k <- intResults);
 }
 
 public void showISOScore(map[str, str] scores) {

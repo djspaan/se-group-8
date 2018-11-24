@@ -18,35 +18,37 @@ import Loc;
 import util::Trie;
 
 
-set[loc] getMethodLocs(M3 m3){ 
-	return methods(m3);
+set[loc] getUnitLocs(M3 m3){ 
+	return files(m3);
 }
 
-str readMethod(loc mloc){
+str readJavaFile(loc mloc){
 	return removeComments(readFile(mloc));
 }
 
-rel[str, loc] methodSrcs(M3 m3){
-	return {<readMethod(mloc), mloc> | loc mloc <- getMethodLocs(m3)};
+rel[str, loc] srcs(M3 m3){
+	return {<readJavaFile(mloc), mloc> | loc mloc <- files(m3)};
 }
 
 /*
  * Split method body to lines;
  */
-rel[list[str], loc] methodLines(M3 m3){
-	return {<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- methodSrcs(m3)};
+rel[list[str], loc] lines(M3 m3){
+	return {<[trim(line)| line <- split("\n", src)], mloc> | <str src, loc mloc> <- srcs(m3)};
 }
 
 /*
  * Clean invalid (empty) lines
  */
-rel[list[str], loc] cleanMethodLines(M3 m3){
-	return {<[l | l <- lines, validLine(l)], mloc> | <list[str] lines, loc mloc> <- methodLines(m3)};
+rel[list[str], loc] cleanLines(M3 m3){
+	return {<[l | l <- ls, validLine(l)], mloc> | <list[str] ls, loc mloc> <- lines(m3)};
 } 
+
+bool validLine(str l) = size(l) > 0 && ! (/^import\s+/ := l);
 
 Trie createLinesTrie(rel[list[str], loc] lines){
 	t0 = getMilliTime();
-	trie = createSuffixTrie(lines, minSuffixLength=6);
+	trie = createSuffixTrie(lines, minSuffixLength=0);
 	t1 = getMilliTime();
 	//println(" Building trie took <t1 - t0> ms");
 	return trie;
@@ -60,10 +62,17 @@ Trie pruneTrie(Trie trie){
 		case \leaf(_, _, _) => \emptyleaf()
 		case \node(_, {v}, _) => \emptyleaf()
 	}
-	trie = top-down visit(trie){
+	trie = bottom-up visit(trie){
 		case \node(cs, vs, d) => \node((k: cs[k] | k <- cs, !(\emptyleaf() := cs[k])), vs, d)
-	}	
+	}
 	return trie;
+}
+
+
+Trie fixLineNumbers(Trie trie){
+	return bottom-up visit(trie){
+		case \node(cs, vs, d) => \node(cs, {<l, n + d>| <loc l, int n> <- vs} , d)
+	}
 }
 
 map[set[value], int] getAllDuplications(Trie trie){
@@ -85,29 +94,42 @@ map[set[value], int] getAllDuplications(Trie trie){
 map[value, int] getUniqueDuplications(Trie trie){
 	dupes = getAllDuplications(trie);
 	flatDupes = (l: dupes[ls] | ls <- dupes, l <- ls);
+	for(l <- sort({s | s <- flatDupes})){ println(l);}
 	blacklist = {};
-	for(<loc method, int offset> <- flatDupes){
-		count = flatDupes[<method, offset>];
-		blacklist = blacklist + {<method, offset - i> | int i <- [1..count]};
+	for(<loc file, int offset> <- flatDupes){
+		count = flatDupes[<file, offset>];
+		blacklist = blacklist + {<file, offset - i> | int i <- [1..count]};
 	}
 	return (k: flatDupes[k] | k <- flatDupes, k notin blacklist);
 }
 
 
-bool validLine(str l) = size(l) > 0;
 
-/* Finds all duplications of size >= 6, and returns a map of the set of locations where
- * these duplications were found to the number of lines that are duplicated between these
- * locations.
+
+/* Finds all duplications of size >= 6, and returns a set of the lines 
+ * where these locations were found.
  */
-public map[value, int] getDuplicationsForM3(M3 m3){
-	rel[list[str], loc] lines = cleanMethodLines(m3);
-	t0 = getMilliTime();
+public rel[loc, int] getDuplicationsForM3(M3 m3){
+	rel[list[str], loc] lines = cleanLines(m3);
+	
 	Trie trie = createLinesTrie(lines);
-	t1 = getMilliTime();
-	//println("Time spent building trie: <t1 - t0> ms"); // = negligible :)
 	Trie duplicateTrie = pruneTrie(trie);
-	return getUniqueDuplications(duplicateTrie);
+	duplicateTrie = fixLineNumbers(duplicateTrie);
+	set[tuple[loc, int]] duplicateLines = {};
+	visit(duplicateTrie){
+		case \node(cs, vs, d): 
+			if(d == 6){
+				for(<loc f, int l> <- vs){
+					// add the line as well as  the previous 5 lines
+					duplicateLines += {<f, l + i> | i <- [-5..1]}; 
+				}
+			}
+			else if(d > 6) {
+				// add just the line
+				duplicateLines += {<f, l> | <loc f, int l> <- vs};
+			}
+	}
+	return duplicateLines;
 }
 
 
@@ -123,9 +145,9 @@ public tuple[int, int] countDuplicationsForProject(loc project){
 
 /** returns the ratio of number of duplications to the total lines considered as a tuple */
 public tuple[int, int] countDuplicationsForM3(M3 m3){
-	map[value, int] count = getDuplicationsForM3(m3);
-	int totalLines = (0 | it + size(lines) | <list[str] lines, _> <- cleanMethodLines(m3));
-	int duplicateCount = (0 | it + count[locs] | locs <- count);
+	rel[loc, int] dups = getDuplicationsForM3(m3);
+	int totalLines = (0 | it + size(lines) | <list[str] lines, _> <- cleanLines(m3));
+	int duplicateCount = size(dups);
 	return <duplicateCount, totalLines>;
 }
 

@@ -18,8 +18,9 @@ public int countLinesForProject(loc project) {
 	M3 m3Project = createM3FromEclipseProject(project);
 	return countLinesForM3(m3Project);
 }
+
 public int countLinesForM3(M3 m3Project) {
-	set[loc] files = classes(m3Project);
+	set[loc] files = files(m3Project);
 	return sum([countLinesForLocation(file) | loc file <- files]);
 }
 
@@ -47,25 +48,21 @@ public int countLinesForLocation(loc location) {
 	
 }
 
-private list[loc] allFiles(loc project) {
-	return [f | /file(f) := getProject(project), f.extension == "java"];
-}
-
 public str removeComments(str text) {
 	return visit(text){
 		
-	    // Special case: '\"'
+	    // Special case: '\"' or '"'
 		case /^<s:'("|\\")'>/ => s
 
 	    // Strings. Not 100% correct, but will work for most cases. 
 	    // The goal is to prevent accidentally filtering out strings that look like comments.
-		case /^<s:"([^"\r\n]+|\\")*">/ => s
+		case /^<s:"((\\[a-z]|\\"|\\')|[^"\r\n\\])*">/ => s
 
 		// /*...*/
 		case /^<ws1:\s*>(\/\*([^*]+|\*[^\/])*\*\/)<ws2:\s*>/ => (ws1 + ws2) == "" ? " " : ws1 + ws2
 
 		// //...
-		case /^<s:\/\/[^\r\n]*><lb:\n?>/ => " <lb>" 
+		case /^<s:\/\/[^\r\n]*><newline:\n?>/ => "<s> <newline>" 
 		
 		// whitelist irrelevant chars --> big performance boost
 		case /^<s:[^\/"']+>/ => s 
@@ -84,7 +81,7 @@ private list[str] filterLines(list[str] lines) {
 }
 
 private str filterLine(str line) {
-	line = replaceAll(line, "\r", "");
+	//line = replaceAll(line, "\r", "");
 	line = trim(line);
 	return line;
 }

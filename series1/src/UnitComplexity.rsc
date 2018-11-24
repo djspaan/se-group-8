@@ -14,22 +14,23 @@ import analysis::m3::Core;
 value runForSmallSQL(){
 	M3 m3 = createM3FromDirectory(|home:///se-group-8/projects/smallsql|);
 	asts = toList(getASTs(m3));
-	return avgComplexity(asts);
+	return complexityScore(asts);
 }
 
 value runForHSqlDb(){
 	M3 m3 = createM3FromDirectory(|home:///se-group-8/projects/hsqldb|);
 	asts = toList(getASTs(m3));
-	return avgComplexity(asts);
+	return complexityScore(asts);
 }
 
-real avgUnitComplexityForProject(loc project){
+tuple[list[int], real] avgUnitComplexityForProject(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
+	return complexityScoreForM3(m3);
 }
 
-tuple[list[int], real] unitComplexitiesForM3(M3 m3){
+tuple[list[int], real] complexityScoreForM3(M3 m3){
 	asts = toList(getASTs(m3));
-	return avgComplexity(asts);
+	return complexityScore(asts);
 }
 
 
@@ -54,19 +55,22 @@ set[Declaration] getASTs(M3 m3){
 int getComplexity(node ast){
 	int i = 1;
 	visit(ast){
-		case \foreach(_, _, _): i = i + 1;
-		case \for(_, _, _): i = i + 1;
-		case \for(_, _, _, _): i = i + 1;
-		case \while( _, _): i = i + 1; 
-		case \do( _, _): i = i + 1; 
-		case \if( _, _): i = i + 1;
-		case \if(_, _, _): i = i + 1;
+		case \foreach(_, _, _): i += 1;
+		case \for(_, _, _): i += 1;
+		case \for(_, _, _, _): i += 1;
+		case \while( _, _): i += 1; 
+		case \do( _, _): i += 1; 
+		case \if( _, _): i += 1;
+		case \if(_, _, _): i += 1;
 		// the case for \case is not entirely correct for exhaustive cases,
 		// because it also counts the path for a non-existent default case.
 		// Exhaustive cases are difficult to check using static analysis, so
 		// this is a deliberate compromise.
-		case \case(_): i = i + 1; 
-		case \catch(_, _): i = i + 1;
+		case \case(_): i += 1; 
+		case \catch(_, _): i += 1;
+		case \conditional(_, _, _): i += 1;
+		case \infix(_, "&&", _): i += 1;
+		case \infix(_, "||", _): i += 1;
 	}
 	
 	return i;
@@ -76,8 +80,9 @@ list[int] getComplexities(list[node] asts){
 	return [getComplexity(ast) | ast <- asts];
 }
 
-tuple[list[int], real] avgComplexity(list[Declaration] asts){
-	if(size(asts) == 0) return 0.0;
+
+tuple[list[int], real] complexityScore(list[Declaration] asts){
+	if(size(asts) == 0) return <[], 0.0>;
 	complexities = getComplexities(asts);
 	avg = (0| it + c | c <- complexities) / toReal(size(asts));
 	return <complexities, avg>;
