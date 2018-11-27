@@ -20,13 +20,11 @@ public real getAverageUnitSizeForM3(M3 project) {
 }
 
 public str getRankForUnitSizeScore(real avgUnitSize){
-	if(avgUnitSize <= 5){
+	if(avgUnitSize <= 15){
 		return "++";
-	} else if(avgUnitSize > 5 && avgUnitSize <= 10){
+	} else if(avgUnitSize <= 30){
 		return "+";
-	} else if(avgUnitSize > 10 && avgUnitSize <= 15){
-		return "o";
-	} else if(avgUnitSize > 15 && avgUnitSize <= 20){
+	} else if(avgUnitSize <= 60){
 		return "-";
 	} else {
 		return "--";

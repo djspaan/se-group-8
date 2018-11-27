@@ -62,7 +62,7 @@ public str removeComments(str text) {
 		case /^<ws1:\s*>(\/\*([^*]+|\*[^\/])*\*\/)<ws2:\s*>/ => (ws1 + ws2) == "" ? " " : ws1 + ws2
 
 		// //...
-		case /^<s:\/\/[^\r\n]*><newline:\n?>/ => "<s> <newline>" 
+		// case /^<s:\/\/[^\r\n]*><newline:\n?>/ => "  " 
 		
 		// whitelist irrelevant chars --> big performance boost
 		case /^<s:[^\/"']+>/ => s 

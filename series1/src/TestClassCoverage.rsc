@@ -1,4 +1,4 @@
-module PackageIndependence
+module TestClassCoverage
 
 import IO;
 import String;
@@ -13,23 +13,10 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import analysis::m3::Core;
 
+import PackageIndependence;
 import Loc;
 
-
-map[str, loc] listTypes(set[Declaration] asts){
-	map[str, loc] knownTypes = ();
-	set[str] usedTypes = {};
-	for(unit <- asts){
-		if(\compilationUnit(pkg, imports, types) := unit){
-			for(cls <- types){
-				knownTypes += (getType(pkg, cls): unit.src);
-			}
-		}
-	}
-	return knownTypes;
-}
-
-real meanIndependenceScoreForM3(M3 project){
+real meanTestCoverageScoreForM3(M3 project){
 	int locs = 0;
 	int publicLocs = 0;
 	if(<_, set[Declaration] asts> := createM3sAndAstsFromFiles(files(project))){
@@ -39,9 +26,9 @@ real meanIndependenceScoreForM3(M3 project){
 			locs += countLinesForLocation(unit.src);
 		}
 		
-		forunit: for(\compilationUnit(pkg, imports, types) <- asts){
-			for(\import(/junit/) <- imports) 
-				continue forunit;
+		for(\compilationUnit(pkg, imports, types) <- asts){
+			if(!(/(\.test|\.junit)/ := getPkgName(pkg))) 
+				continue;
 			
 			set[str] importPkgs = {k | \import(str i) <- imports, str k <- knownTypes, startsWith(k, i)};
 			names = (split(".", pkg)[-1]: pkg | str pkg <- importPkgs);
@@ -56,20 +43,4 @@ real meanIndependenceScoreForM3(M3 project){
 		return publicLocs / toReal(locs);
 	}
 	return 0.0;
-}
-
-str getRankForIndependenceScore(real independence){
-	return independence > 0.142 ? "-" : "+";
-}
-
-str getPkgName(\package(name)) = name;
-str getPkgName(\package(parentPackage,name)) = "<getPkgName(parentPackage)>.<name>";
-
-str getType(pkg, cls){
-	pname = getPkgName(pkg);
-	switch(cls){
-		case \class(name, _, _, _): return "<pname>.<name>";
-		case \interface(name, _, _, _): return "<pname>.<name>";
-	}
-	return "huh";
 }

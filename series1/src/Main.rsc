@@ -4,6 +4,7 @@ import IO;
 import Loc;
 import Duplication;
 import PackageIndependence;
+import TestClassCoverage;
 import String;
 import Set;
 import Type;
@@ -44,7 +45,7 @@ public map[str, value] calculateScores(loc location) {
 	real independencePct = 100 * independence;
 	str independenceRank = getRankForIndependenceScore(independence);
 	int t5 = getMilliTime();
-	real tests = meanTestScoreForM3(project);
+	real tests = meanTestCoverageScoreForM3(project);
 	real testsPct = 100 * tests;
 	int t6 = getMilliTime();
 
@@ -109,9 +110,8 @@ public void showSIGMaintainabilityModel(map[str, value] scores) {
 	println("LoC in public modules %: <scores["independencePercentage"]>");
 	println("Independence score: <scores["independenceRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
 	println("---------------------------");
-	println("Testing");
+	println("Module coverage (static analysis estimate)");
 	println("LoC in tested modules %: <scores["testsPercentage"]>");
-	//println("Independence score: <scores["independenceRank"]>"); // numberOfDuplicates/toReal(totalLinesOfCode)
 	println("---------------------------");
 }
 

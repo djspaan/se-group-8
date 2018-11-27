@@ -89,11 +89,11 @@ tuple[list[int], real] complexityScore(list[Declaration] asts){
 }
 
 lrel[int, real] complexityBins(list[int] complexities){
-	binVals = [5, 10, 15, 25, 1000000];
+	binVals = [5, 10, 25, 1000000];
 	map[int, real] bins = (v: 0.0 | v <- binVals);
 	int total = size(complexities);
 	for(c <- complexities){
-		binVal = [b | b <- binVals, b >= c][0];
+		binVal = [b | b <- binVals, c <= b][0];
 		bins[binVal] += 1.0 / total;
 	}
 	return sort([<bin, bins[bin]> | bin <- bins]);
@@ -104,7 +104,6 @@ public str getComplexityScore(real complexity){
 	scores = [s | <int n, str s> <- [
 		<5, "++">,
 		<10, "+">,
-		<15, "o">,
 		<25, "-">,
 		<-1, "--">
 	], n >= complexity || n < 0];
